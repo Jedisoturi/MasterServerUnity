@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -16,11 +17,15 @@ public class Server
 
     private static TcpListener _tcpListener;
     private static UdpClient _udpClient;
+    private static readonly HttpClient client = new HttpClient();
 
-    public static void Start(int maxPlayers, int port)
+    public async static void Start(int maxPlayers, int port)
     {
         MaxPlayers = maxPlayers;
         Port = port;
+
+        var responseString = await client.GetStringAsync("http://localhost:5000/api/servers/");
+        Debug.Log(responseString);
 
         Debug.Log("Starting server...");
         InitializeServerData();
