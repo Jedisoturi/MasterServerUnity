@@ -1,8 +1,11 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -17,15 +20,14 @@ public class Server
 
     private static TcpListener _tcpListener;
     private static UdpClient _udpClient;
-    private static readonly HttpClient client = new HttpClient();
+    private static readonly HttpClient _httpClient = new HttpClient();
 
-    public async static void Start(int maxPlayers, int port)
+    private static Guid _adminKey;
+
+    public static void Start(int maxPlayers, int port)
     {
         MaxPlayers = maxPlayers;
         Port = port;
-
-        var responseString = await client.GetStringAsync("http://localhost:5000/api/servers/");
-        Debug.Log(responseString);
 
         Debug.Log("Starting server...");
         InitializeServerData();
@@ -38,7 +40,41 @@ public class Server
         _udpClient.BeginReceive(UdpReceiveCallback, null);
 
         Debug.Log($"Server started on {Port}.");
+
+        DBCreateServer();
     }
+
+    #region DB
+
+    private async static void DBCreateServer()
+    {
+        string ip = "127.0.0.1";
+
+        object data = new
+        {
+            Name = "Foo",
+            EndPoint = $"{ip}:{Port}",
+            Players = new List<Guid>(),
+            MaxPlayers = 8,
+            BannedPlayers = new List<Guid>(),
+            HasPassword = false
+        };
+
+        var myContent = JsonConvert.SerializeObject(data);
+
+        var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+        var byteContent = new ByteArrayContent(buffer);
+        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        var response = await _httpClient.PostAsync("http://localhost:5000/api/servers/create", byteContent);
+
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var serverAndKey = JsonConvert.DeserializeObject<ServerAndKeyObject>(responseString);
+        _adminKey = serverAndKey.AdminKey;
+
+    }
+
+    #endregion
 
     public static void Stop()
     {
@@ -58,6 +94,8 @@ public class Server
             if (_clients[i]._tcp._socket == null)
             {
                 _clients[i]._tcp.Connect(client);
+                //var response = await _httpClient
+
                 return;
             }
         }
