@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -35,9 +36,9 @@ public class Player : MonoBehaviour
         GameStatus._status.SaveData(saveData);
     }
 
-    public static void CreatePlayer(string name)
+    public async static void CreatePlayer(string name)
     {
-        DBCreatePlayer(name);
+        await DBCreatePlayer(name);
         SavePlayerToFiles();
     }
 
@@ -48,7 +49,7 @@ public class Player : MonoBehaviour
 
     #region DB
 
-    public async static void DBCreatePlayer(string name)
+    public async static Task DBCreatePlayer(string name)
     {
         var response = await Client._instance._httpClient.PostAsync($"{Constants.apiAddress}api/players/create?name={name}", null);
         var responseString = await response.Content.ReadAsStringAsync();

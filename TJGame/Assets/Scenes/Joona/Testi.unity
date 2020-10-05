@@ -330,7 +330,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _newPlayerMenu: {fileID: 1054098602}
-  _connectingMenu: {fileID: 0}
+  _connectingMenu: {fileID: 1663391054}
   _connectMenu: {fileID: 181636085}
   _usernameField: {fileID: 1072235002}
 --- !u!114 &216801684
@@ -2714,7 +2714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1663391055
 RectTransform:
   m_ObjectHideFlags: 0
