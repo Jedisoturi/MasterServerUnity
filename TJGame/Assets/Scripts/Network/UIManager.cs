@@ -101,10 +101,10 @@ public class UIManager : MonoBehaviour
         OpenConnectMenu();
     }
 
-    public void ConnectToServer()
+    public void ConnectToServer(ServerObject server)
     {
         _connectMenu.SetActive(false);
-        Client._instance.ConnectToServer();
+        Client._instance.ConnectToServer(server);
     }
 
     public void RefreshServerList()

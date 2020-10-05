@@ -32,6 +32,6 @@ public class ServerMenuObject : MonoBehaviour
 
     public void ConnectServer()
     {
-        Debug.Log("Connect to");
+        UIManager._instance.ConnectToServer(serverObj);
     }
 }
