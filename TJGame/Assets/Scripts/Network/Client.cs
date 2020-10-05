@@ -19,7 +19,7 @@ public class Client : MonoBehaviour
     public int _myId = 0;
     public TCP _tcp;
     public UDP _udp;
-    public HttpClient _httpClient;
+    public HttpClient _httpClient = new HttpClient();
 
     private bool _isConnected = false;
     private delegate void PacketHandler(Packet packet);

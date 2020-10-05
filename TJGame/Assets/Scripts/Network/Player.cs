@@ -9,13 +9,13 @@ public class Player : MonoBehaviour
 {
     public static Guid _guid;
 
-    private void Start()
+    /*private void Start()
     {
         if (!GetPlayerFromFiles())
         {
             // ask for player name...
         }
-    }
+    }*/
 
     public static bool GetPlayerFromFiles()
     {
