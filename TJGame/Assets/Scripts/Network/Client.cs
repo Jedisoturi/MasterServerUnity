@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using Priority_Queue;
+using System.Net.Http;
 
 public class Client : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class Client : MonoBehaviour
     public int _myId = 0;
     public TCP _tcp;
     public UDP _udp;
+    public HttpClient _httpClient;
 
     private bool _isConnected = false;
     private delegate void PacketHandler(Packet packet);

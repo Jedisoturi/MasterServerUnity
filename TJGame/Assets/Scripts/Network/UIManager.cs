@@ -29,4 +29,6 @@ public class UIManager : MonoBehaviour
         _usernameField.interactable = false;
         Client._instance.ConnectToServer();
     }
+
+
 }

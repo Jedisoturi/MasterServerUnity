@@ -30,8 +30,7 @@ public class ClientSend : MonoBehaviour
         {
             packet.Write(Client._instance._myId);
             packet.Write(UIManager._instance._usernameField.text);
-            // TODO: Take Guid from client instance
-            packet.Write(Guid.NewGuid().ToString());
+            packet.Write(Player._guid.ToString());
 
             SendTcpData(packet);
         }
