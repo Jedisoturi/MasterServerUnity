@@ -14,6 +14,9 @@ public class UIManager : MonoBehaviour
     public GameObject _newPlayerMenu;
     public GameObject _connectingMenu;
     public GameObject _connectMenu;
+    public GameObject _detailsMenu;
+    public PlayerMenuListCreator _detailsMenuPlayerCreator;
+    public ServerMenuObject _detailsMenuServer;
     public InputField _usernameField;
     private GameSaveData playerData;
     private bool userCreated = false;
@@ -101,8 +104,21 @@ public class UIManager : MonoBehaviour
         OpenConnectMenu();
     }
 
+    public async void ViewServerDetails(ServerObject server)
+    {
+        var response = await Client._instance._httpClient.GetAsync($"{Constants.apiAddress}api/servers/{server.Id}/players");
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        PlayerObject[] playerList = JsonConvert.DeserializeObject<PlayerObject[]>(responseString);
+
+        _detailsMenuPlayerCreator.RefreshList(playerList);
+        _detailsMenuServer.UpdateServer(server);
+        _detailsMenu.SetActive(true);
+    }
+
     public void ConnectToServer(ServerObject server)
     {
+        Debug.Log("Connecting to: " + server.EndPoint);
         _connectMenu.SetActive(false);
         Client._instance.ConnectToServer(server);
     }

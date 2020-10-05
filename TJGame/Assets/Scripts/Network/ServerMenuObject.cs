@@ -13,8 +13,15 @@ public class ServerMenuObject : MonoBehaviour
     public TextMeshProUGUI hasPass;
     public Image background;
     private ServerObject serverObj;
+    private UIManager boss;
 
-    public void Init(ServerObject server)
+    public void Init(UIManager manager, ServerObject server)
+    {
+        boss = manager;
+        UpdateServer(server);
+    }
+
+    public void UpdateServer(ServerObject server)
     {
         serverObj = server;
         name.text = server.Name;
@@ -23,15 +30,13 @@ public class ServerMenuObject : MonoBehaviour
         hasPass.text = server.HasPassword ? "On" : "Off";
     }
 
-
-
     public void ViewDetails()
     {
-        Debug.Log("View details");
+       boss.ViewServerDetails(serverObj);
     }
 
     public void ConnectServer()
     {
-        UIManager._instance.ConnectToServer(serverObj);
+        boss.ConnectToServer(serverObj);
     }
 }
