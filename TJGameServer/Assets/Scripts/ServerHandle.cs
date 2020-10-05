@@ -5,23 +5,31 @@ using UnityEngine;
 
 public class ServerHandle
 {
-    public static void WelcomeReceived(int id, Packet packet)
+    public async static void WelcomeReceived(int id, Packet packet)
     {
         int clientIdCheck = packet.ReadInt();
-        string username = packet.ReadString();
         string guid = packet.ReadString();
 
         Guid playerId = Guid.Parse(guid);
 
         if (id != clientIdCheck)
         {
-            Debug.Log($"Player \" {username}\" (ID: {id}) has assumed the" +
+            Debug.Log($"Player (ID: {id}) has assumed the" +
                 $"wrong client id ({clientIdCheck})!");
+        }
+
+        var player = await Server.DBGetPlayer(playerId);
+
+        if (player == null)
+        {
+            Debug.Log($"Player was not in the player database. Connection was not allowed!");
+            Server._clients[id].Disconnect();
+            return;
         }
 
         if (Server._bannedPlayers.Contains(playerId))
         {
-            Debug.Log($"Player \" {username}\" is banned from the server and therefore cannot connect!");
+            Debug.Log($"Player is banned from the server and therefore cannot connect!");
             Server._clients[id].Disconnect();
             return;
         }
@@ -32,7 +40,7 @@ public class ServerHandle
         Server._clients[id]._guid = playerId;
         Server.DBPlayerConnected(id);
 
-        Server._clients[id].SendIntoGame(username);
+        Server._clients[id].SendIntoGame(player.Name);
     }
 
     public static void UdpTestReceived(int id, Packet packet)

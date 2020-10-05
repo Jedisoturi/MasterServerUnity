@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Server
@@ -105,6 +106,17 @@ public class Server
         var response = await _httpClient.DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
     }
 
+    public async static Task<PlayerObject> DBGetPlayer(Guid guid)
+    {
+        var response = await _httpClient.GetAsync($"{Constants.apiAddress}api/players/{guid}");
+        if (response.IsSuccessStatusCode == true)
+        {
+            var responseString = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<PlayerObject>(responseString);
+        }
+        return null;
+    }
+    
     #endregion
 
     #region Misc
