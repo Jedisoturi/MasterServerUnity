@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +17,9 @@ public class UIManager : MonoBehaviour
     public InputField _usernameField;
     private GameSaveData playerData;
     private bool userCreated = false;
+    private ServerObject[] serverList;
+    [SerializeField]
+    private ServerMenuListCreator serverMenuList;
 
     private void Awake()
     {
@@ -67,6 +73,7 @@ public class UIManager : MonoBehaviour
 
     public void OpenConnectMenu()
     {
+        UpdateServerList();
         _connectingMenu.SetActive(false);
         _connectMenu.SetActive(true);
     }
@@ -96,8 +103,25 @@ public class UIManager : MonoBehaviour
 
     public void ConnectToServer()
     {
-        _newPlayerMenu.SetActive(false);
+        _connectMenu.SetActive(false);
         Client._instance.ConnectToServer();
+    }
+
+    public void RefreshServerList()
+    {
+        UpdateServerList();
+    }
+
+    private async void UpdateServerList()
+    {
+        var response = await Client._instance._httpClient.GetAsync($"{Constants.apiAddress}api/servers/");
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        serverList = JsonConvert.DeserializeObject<ServerObject[]>(responseString);
+
+        Debug.Log(responseString);
+
+        serverMenuList.RefreshList(serverList);
     }
 
 
