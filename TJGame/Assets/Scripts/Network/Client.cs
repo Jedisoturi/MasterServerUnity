@@ -52,8 +52,12 @@ public class Client : MonoBehaviour
         Disconnect();
     }
 
-    public void ConnectToServer()
+    public void ConnectToServer(ServerObject server)
     {
+        string[] ep = server.EndPoint.Split(':');
+        _ip = ep[0];
+        _port = int.Parse(ep[1]);
+
         _tcp = new TCP();
         _udp = new UDP();
 
