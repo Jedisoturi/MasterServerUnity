@@ -29,7 +29,6 @@ public class ClientSend : MonoBehaviour
         using (Packet packet = new Packet((int)ClientPackets.welcomeReceived))
         {
             packet.Write(Client._instance._myId);
-            packet.Write(UIManager._instance._usernameField.text);
             packet.Write(Player._guid.ToString());
 
             SendTcpData(packet);
