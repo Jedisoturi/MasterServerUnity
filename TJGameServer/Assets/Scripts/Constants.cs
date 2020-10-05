@@ -13,4 +13,6 @@ public class Constants
     public const int longLengthInBytes = 8;
     public const int floatLengthInBytes = 4;
     public const int boolLengthInBytes = 1;
+
+    public const string apiAddress = "http://localhost:5000/";
 }

@@ -22,7 +22,10 @@ public class Server
     private static UdpClient _udpClient;
     private static readonly HttpClient _httpClient = new HttpClient();
 
+    private static Guid _serverId;
     private static Guid _adminKey;
+
+    public static List<Guid> _bannedPlayers = new List<Guid>();
 
     public static void Start(int maxPlayers, int port)
     {
@@ -46,8 +49,9 @@ public class Server
 
     #region DB
 
-    private async static void DBCreateServer()
+    public async static void DBCreateServer()
     {
+        // TODO: IP, name, bannedplayers should be given by the server creator
         string ip = "127.0.0.1";
 
         object data = new
@@ -55,23 +59,77 @@ public class Server
             Name = "Foo",
             EndPoint = $"{ip}:{Port}",
             Players = new List<Guid>(),
-            MaxPlayers = 8,
+            MaxPlayers = MaxPlayers,
             BannedPlayers = new List<Guid>(),
             HasPassword = false
         };
 
-        var myContent = JsonConvert.SerializeObject(data);
+        var content = JsonConvert.SerializeObject(data);
 
-        var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+        var buffer = System.Text.Encoding.UTF8.GetBytes(content);
         var byteContent = new ByteArrayContent(buffer);
         byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        var response = await _httpClient.PostAsync("http://localhost:5000/api/servers/create", byteContent);
+        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/create", byteContent);
+
+        // TODO: Add error handling for failed requests
 
         var responseString = await response.Content.ReadAsStringAsync();
 
         var serverAndKey = JsonConvert.DeserializeObject<ServerAndKeyObject>(responseString);
         _adminKey = serverAndKey.AdminKey;
+        _serverId = serverAndKey.Server.Id;
+    }
 
+    public async static void DBPlayerConnected(int id)
+    {
+        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerConnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
+    }
+
+    public async static void DBPlayerDisconnected(int id)
+    {
+        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerDisconnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
+    }
+
+    public async static void DBBanPlayer(Guid guid)
+    {
+        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/banPlayer/{guid}?adminKey={_adminKey}", null);
+    }
+
+    public async static void DBUnbanPlayer(Guid guid)
+    {
+        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/unbanPlayer/{guid}?adminKey={_adminKey}", null);
+    }
+
+    public async static void DBDeleteServer()
+    {
+        var response = await _httpClient.DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
+    }
+
+    #endregion
+
+    #region Misc
+
+    public static void BanPlayer(int id)
+    {
+        DBBanPlayer(_clients[id]._guid);
+        _bannedPlayers.Add(_clients[id]._guid);
+        _clients[id].Disconnect();
+    }
+
+    public static void BanPlayer(Guid guid)
+    {
+        // TODO: Try to disconnect
+        DBBanPlayer(guid);
+        _bannedPlayers.Add(guid);
+    }
+
+    public static void UnbanPlayer(Guid guid)
+    {
+        DBUnbanPlayer(guid);
+        if (_bannedPlayers.Contains(guid))
+        {
+            _bannedPlayers.Remove(guid);
+        }
     }
 
     #endregion
@@ -80,6 +138,8 @@ public class Server
     {
         _tcpListener.Stop();
         _udpClient.Close();
+
+        DBDeleteServer();
     }
 
     private static void TcpConnectCallback(IAsyncResult result)
@@ -94,8 +154,6 @@ public class Server
             if (_clients[i]._tcp._socket == null)
             {
                 _clients[i]._tcp.Connect(client);
-                //var response = await _httpClient
-
                 return;
             }
         }

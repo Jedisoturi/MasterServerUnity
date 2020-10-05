@@ -9,15 +9,29 @@ public class ServerHandle
     {
         int clientIdCheck = packet.ReadInt();
         string username = packet.ReadString();
+        string guid = packet.ReadString();
 
-        Debug.Log($"{Server._clients[id]._tcp._socket.Client.RemoteEndPoint} connected successfully and " +
-            $"is now player {id}");
+        Guid playerId = Guid.Parse(guid);
 
         if (id != clientIdCheck)
         {
             Debug.Log($"Player \" {username}\" (ID: {id}) has assumed the" +
                 $"wrong client id ({clientIdCheck})!");
         }
+
+        if (Server._bannedPlayers.Contains(playerId))
+        {
+            Debug.Log($"Player \" {username}\" is banned from the server and therefore cannot connect!");
+            Server._clients[id].Disconnect();
+            return;
+        }
+
+        Debug.Log($"{Server._clients[id]._tcp._socket.Client.RemoteEndPoint} connected successfully and " +
+            $"is now player {id}");
+
+        Server._clients[id]._guid = playerId;
+        Server.DBPlayerConnected(id);
+
         Server._clients[id].SendIntoGame(username);
     }
 

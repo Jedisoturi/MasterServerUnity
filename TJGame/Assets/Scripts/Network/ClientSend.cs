@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -29,6 +30,8 @@ public class ClientSend : MonoBehaviour
         {
             packet.Write(Client._instance._myId);
             packet.Write(UIManager._instance._usernameField.text);
+            // TODO: Take Guid from client instance
+            packet.Write(Guid.NewGuid().ToString());
 
             SendTcpData(packet);
         }
