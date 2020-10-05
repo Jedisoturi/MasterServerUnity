@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
 {
     public static Guid _guid;
 
-    private void Awake()
+    private void Start()
     {
         if (!GetPlayerFromFiles())
         {
