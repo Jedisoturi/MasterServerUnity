@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
-public class ServerMenuListCreator : MonoBehaviour
+public class PlayerMenuListCreator : MonoBehaviour
 {
     [SerializeField]
     private GameObject emptyText;
@@ -14,33 +13,28 @@ public class ServerMenuListCreator : MonoBehaviour
     private RectTransform content = null;
     private int itemSize = 60;
 
-    [SerializeField]
-    private UIManager _UIManager = null;
-
-
-
-    public void RefreshList(ServerObject[] serverList)
+    public void RefreshList(PlayerObject[] playerList)
     {
-        emptyText.SetActive(serverList.Length == 0);
+        emptyText.SetActive(playerList.Length == 0);
 
         //Clear old servers;
         foreach (Transform child in transform)
             Destroy(child.gameObject);
 
-        for (int i = 0; i < serverList.Length; i++)
+        for (int i = 0; i < playerList.Length; i++)
         {
             GameObject spawnedMenuItem = Instantiate(menuItem);//, pos, SpawnPoint.rotation);
 
             //setParent
             spawnedMenuItem.transform.SetParent(content, false);
-            ServerMenuObject serverMenuObject = spawnedMenuItem.GetComponent<ServerMenuObject>();
+            PlayerMenuObject playerMenuObject = spawnedMenuItem.GetComponent<PlayerMenuObject>();
 
-            if (serverMenuObject == null)
+            if (playerMenuObject == null)
                 return;
 
-            serverMenuObject.Init(_UIManager, serverList[i]);
+            playerMenuObject.UpdatePlayer(i, playerList[i]);
             if(i % 2 == 0)
-                serverMenuObject.background.color = new Color32(210, 210, 210, 191);
+                playerMenuObject.background.color = new Color32(210, 210, 210, 191);
         }
     }
 }
