@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,4 +16,6 @@ public class Constants
     public const int boolLengthInBytes = 1;
 
     public const string apiAddress = "http://localhost:5000/";
+    public static readonly Guid appId = Guid.Parse("b6a7ab1d-1d6f-4ee4-a32c-1eeed3eed8ee");
+    public const string appIdHeader = "AppId";
 }

@@ -30,6 +30,8 @@ public class Server
 
     public static void Start(int maxPlayers, int port)
     {
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.appIdHeader, Constants.appId.ToString());
+
         MaxPlayers = maxPlayers;
         Port = port;
 
