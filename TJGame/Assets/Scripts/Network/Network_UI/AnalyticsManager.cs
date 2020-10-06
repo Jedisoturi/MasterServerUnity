@@ -23,8 +23,6 @@ public class AnalyticsManager : MonoBehaviour
     private MenuListCreator _analyticsMenuCreator;
     [SerializeField]
     private InputField _usernameField;
-    private GameSaveData playerData;
-    private bool userCreated = false;
     private PlayerSort playerSort = PlayerSort.ScoreDesc;
 
 
@@ -88,15 +86,17 @@ public class AnalyticsManager : MonoBehaviour
 
     private async void UpdateAnalyticsList()
     {
-        string request = $"{Constants.apiAddress}api/players/?sort={playerSort}";
+        string request = $"{Constants.apiAddress}api/analytics/"; //?sort={playerSort}";
 
         var response = await Client._instance._httpClient.GetAsync(request);
         var responseString = await response.Content.ReadAsStringAsync();
 
-        PlayerObject[] playerList = JsonConvert.DeserializeObject<PlayerObject[]>(responseString);
+        AnalyticsEventObject[] analyticsList = JsonConvert.DeserializeObject<AnalyticsEventObject[]>(responseString);
 
         Debug.Log(responseString);
 
-       // _analyticsMenuCreator.RefreshList(playerList);
+        Debug.Log(analyticsList[0].Message);
+
+       _analyticsMenuCreator.RefreshList(analyticsList);
     }
 }

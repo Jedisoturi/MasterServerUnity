@@ -3,13 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EventType
-{
-    Warning,
-    Progression,
-    Design
-}
-
 public class AnalyticsEventObject : BaseObject
 {
     public EventType Type { get; private set; }
