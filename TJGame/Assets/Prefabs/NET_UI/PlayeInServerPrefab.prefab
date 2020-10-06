@@ -90,9 +90,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d47a7390e94c4c4e97760ac7c14026d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: {fileID: 835126453738758894}
-  score: {fileID: 4107445905171507958}
-  background: {fileID: 7347890347187785583}
+  panelBackground: {fileID: 7347890347187785583}
+  nameText: {fileID: 835126453738758894}
+  scoreText: {fileID: 4107445905171507958}
 --- !u!1 &4057169071011673157
 GameObject:
   m_ObjectHideFlags: 0

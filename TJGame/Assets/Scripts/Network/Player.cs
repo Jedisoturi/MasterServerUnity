@@ -4,11 +4,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security;
 using System.Threading.Tasks;
+using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class Player : MonoBehaviour
 {
     public static Guid _guid;
+    public static UIManager _uiManager;
+
+    private void Awake()
+    {
+        _uiManager = GameObject.FindObjectOfType<UIManager>();
+        Assert.IsNotNull(_uiManager);   
+    }
 
     /*private void Start()
     {

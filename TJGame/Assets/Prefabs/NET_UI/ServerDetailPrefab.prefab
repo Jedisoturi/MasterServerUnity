@@ -93,11 +93,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a6caca3e774db34fb30061fe1fcded9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: {fileID: 835126453738758894}
-  endpoint: {fileID: 4107445905171507958}
-  players: {fileID: 3494614664569837354}
-  hasPass: {fileID: 3539786891202208292}
-  background: {fileID: 7347890347187785583}
+  panelBackground: {fileID: 7347890347187785583}
+  nameText: {fileID: 835126453738758894}
+  endpointText: {fileID: 4107445905171507958}
+  playersText: {fileID: 3494614664569837354}
+  hasPassText: {fileID: 3539786891202208292}
+  isDetail: 1
 --- !u!114 &838863876784824415
 MonoBehaviour:
   m_ObjectHideFlags: 0

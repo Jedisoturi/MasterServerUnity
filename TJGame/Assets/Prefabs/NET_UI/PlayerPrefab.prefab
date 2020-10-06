@@ -93,12 +93,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 815ab4a8749a5024fbc0286c360c8fc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: {fileID: 835126453738758894}
-  score: {fileID: 4107445905171507958}
-  level: {fileID: 3494614664569837354}
-  date: {fileID: 7935168599655433563}
-  achievements: {fileID: 3539786891202208292}
-  background: {fileID: 7347890347187785583}
+  panelBackground: {fileID: 7347890347187785583}
+  nameText: {fileID: 835126453738758894}
+  scoreText: {fileID: 4107445905171507958}
+  levelText: {fileID: 3494614664569837354}
+  dateText: {fileID: 7935168599655433563}
+  achievementsText: {fileID: 3539786891202208292}
 --- !u!1 &4057169071011673157
 GameObject:
   m_ObjectHideFlags: 0

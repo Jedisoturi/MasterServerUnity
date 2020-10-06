@@ -24,9 +24,9 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private GameObject _leaderMenu;
     [SerializeField]
-    private PlayerMenuListCreator _leaderMenuPlayerCreator;
+    private MenuListCreator _leaderMenuPlayerCreator;
     [SerializeField]
-    private PlayerInServerMenuListCreator _detailsMenuPlayerCreator;
+    private MenuListCreator _detailsMenuPlayerCreator;
     [SerializeField]
     private ServerMenuObject _detailsMenuServer;
     [SerializeField]
@@ -36,7 +36,7 @@ public class UIManager : MonoBehaviour
     private PlayerSort playerSort = PlayerSort.ScoreDesc;
 
     [SerializeField]
-    private ServerMenuListCreator serverMenuList;
+    private MenuListCreator serverMenuList;
 
     private void Awake()
     {
@@ -143,7 +143,7 @@ public class UIManager : MonoBehaviour
         PlayerObject[] playerList = JsonConvert.DeserializeObject<PlayerObject[]>(responseString);
 
         _detailsMenuPlayerCreator.RefreshList(playerList);
-        _detailsMenuServer.UpdateServer(server);
+        _detailsMenuServer.UpdateObject(0, server);
         _detailsMenu.SetActive(true);
     }
 
