@@ -151,6 +151,7 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Connecting to: " + server.EndPoint);
         CloseMenus();
+
         Client._instance.ConnectToServer(server);
     }
 

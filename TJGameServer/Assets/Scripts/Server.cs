@@ -3,11 +3,16 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using UnityEngine;
 
 public class Server
@@ -30,8 +35,6 @@ public class Server
 
     public static void Start(int maxPlayers, int port)
     {
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.appIdHeader, Constants.appId.ToString());
-
         MaxPlayers = maxPlayers;
         Port = port;
 
@@ -67,12 +70,7 @@ public class Server
             HasPassword = false
         };
 
-        var content = JsonConvert.SerializeObject(data);
-
-        var buffer = System.Text.Encoding.UTF8.GetBytes(content);
-        var byteContent = new ByteArrayContent(buffer);
-        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/create", byteContent);
+        var response = await PostAsync($"{Constants.apiAddress}api/servers/create", data);
 
         // TODO: Add error handling for failed requests
 
@@ -85,27 +83,27 @@ public class Server
 
     public async static void DBPlayerConnected(int id)
     {
-        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerConnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerConnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
     }
 
     public async static void DBPlayerDisconnected(int id)
     {
-        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerDisconnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/playerDisconnected/{_clients[id]._guid}?adminKey={_adminKey}", null);
     }
 
     public async static void DBBanPlayer(Guid guid)
     {
-        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/banPlayer/{guid}?adminKey={_adminKey}", null);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/banPlayer/{guid}?adminKey={_adminKey}", null);
     }
 
     public async static void DBUnbanPlayer(Guid guid)
     {
-        var response = await _httpClient.PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/unbanPlayer/{guid}?adminKey={_adminKey}", null);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/unbanPlayer/{guid}?adminKey={_adminKey}", null);
     }
 
     public async static void DBDeleteServer()
     {
-        var response = await _httpClient.DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
+        await DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
     }
 
     public async static Task<PlayerObject> DBGetPlayer(Guid guid)
@@ -251,4 +249,49 @@ public class Server
 
         Debug.Log("Initialized packets.");
     }
+
+    #region HttpWrappers
+
+    public static string Encode(string input, byte[] key)
+    {
+        using (var myhmacsha1 = new HMACSHA256(key))
+        {
+            byte[] byteArray = Encoding.UTF8.GetBytes(input.ToLower());
+            byte[] hash = myhmacsha1.ComputeHash(byteArray);
+            return Convert.ToBase64String(hash);
+        }
+    }
+
+    public static string GenerateURL(string path, string body)
+    {
+        var url = path;
+        var stringToEncrypt = url + body;
+        var encrypted = Encode(stringToEncrypt, Constants.secret);
+        encrypted = HttpUtility.UrlEncode(encrypted);
+        Debug.Log(encrypted);
+        Debug.Log(HttpUtility.UrlDecode(encrypted));
+        url += (path.IndexOf("?") < 0 ? "?" : "&") + "signature=" + encrypted;
+
+        return url;
+    }
+
+    public async static Task<HttpResponseMessage> PostAsync(string url, object body)
+    {
+        // Convert body to bytes
+        var content = JsonConvert.SerializeObject(body);
+        var buffer = Encoding.UTF8.GetBytes(content);
+        var byteContent = new ByteArrayContent(buffer);
+        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        url = GenerateURL(url, content);
+        return await _httpClient.PostAsync(url, byteContent);
+    }
+
+    public async static Task<HttpResponseMessage> DeleteAsync(string url)
+    {
+        url = GenerateURL(url, null);
+        return await _httpClient.DeleteAsync(url);
+    }
+
+    #endregion
 }
