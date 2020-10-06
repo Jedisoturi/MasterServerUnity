@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class AnalyticsMenuObject : BaseMenuObject
 {
+    public TextMeshProUGUI indexText;
     public TextMeshProUGUI typeText;
     public TextMeshProUGUI messageText;
     public TextMeshProUGUI dateText;
@@ -16,9 +17,10 @@ public class AnalyticsMenuObject : BaseMenuObject
         AnalyticsEventObject analytics = (AnalyticsEventObject)inObj;
         if (analytics == null)
             return;
-         nameText.text = (index) + ". " + analytics.PlayerId;
+         indexText.text = (index.ToString());
+         nameText.text = "PlayerID: " + analytics.PlayerId.ToString();
          typeText.text = Enum.GetName(typeof(EventType), analytics.Type);
-         messageText.text = analytics.Message;
-         dateText.text = String.Format("{0:d/M/yyyy}", analytics.CreationTime.Date);//
+         messageText.text = "Message: " + analytics.Message;
+        dateText.text = analytics.CreationTime.ToString(); //String.Format("{0:d/M/yyyy}", analytics.CreationTime.Date);//
     } 
 }

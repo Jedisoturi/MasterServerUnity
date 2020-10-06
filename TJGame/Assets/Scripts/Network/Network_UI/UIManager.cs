@@ -152,8 +152,6 @@ public class UIManager : MonoBehaviour
         Debug.Log("Connecting to: " + server.EndPoint);
         CloseMenus();
         Client._instance.ConnectToServer(server);
-        _connectMenu.SetActive(false);
-        Client._instance.ConnectToServer(server);
     }
 
     public void RefreshServerList()

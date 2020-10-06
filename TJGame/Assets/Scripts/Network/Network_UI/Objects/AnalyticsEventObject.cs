@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class AnalyticsEventObject : BaseObject
 {
-    public EventType Type { get; private set; }
-    public Guid Id { get; private set; }
-    public Guid PlayerId { get; private set; }
-    public string Message { get; private set; }
-    public DateTime CreationTime { get; private set; }
+    public EventType Type { get; set; }
+    public Guid Id { get; set; }
+    public Guid PlayerId { get; set; }
+    public string Message { get; set; }
+    public DateTime CreationTime { get; set; }
 }
 

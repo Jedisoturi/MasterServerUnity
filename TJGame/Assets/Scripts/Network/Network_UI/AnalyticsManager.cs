@@ -2,16 +2,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AnalyticsManager : MonoBehaviour
 {
     public static AnalyticsManager _instance;
-
-
 
     [SerializeField]
     private GameObject _newAnalyticsMenu;
@@ -22,9 +22,20 @@ public class AnalyticsManager : MonoBehaviour
     [SerializeField]
     private MenuListCreator _analyticsMenuCreator;
     [SerializeField]
-    private InputField _usernameField;
-    private PlayerSort playerSort = PlayerSort.ScoreDesc;
-
+    private TMP_Dropdown _playerIdDD;
+    [SerializeField]
+    private TMP_InputField _LimitCountField;
+    [SerializeField]
+    private TMP_InputField _StartTimeField;
+    [SerializeField]
+    private TMP_InputField _EndTimeField;
+    [SerializeField]
+    private TMP_Dropdown _SortByTimeDD;
+    [SerializeField]
+    private TMP_Dropdown _TypeDD;
+    private AnalyticsEventObject[] analyticsList;
+    private List<Guid> playerList;
+    private List<Guid> analyticsPlayerList;
 
     private void Awake()
     {
@@ -41,19 +52,31 @@ public class AnalyticsManager : MonoBehaviour
 
     private void Start()
     {
-        OpenViewAnalyticsMenu();
+        UpdateAnalyticPlayersList();
+        UpdateAnalyticsList();
+        _TypeDD.onValueChanged.AddListener(delegate {
+            TypeDDValueChanged();
+        });
+    }
+
+    //Ouput the new value of the Dropdown into Text
+    void TypeDDValueChanged()
+    {
+        UpdateAnalyticPlayersList();
     }
 
     public void OpenNewAnalyticsMenu()
     {
         _newAnalyticsMenu.SetActive(true);
         _viewAnalyticsMenu.SetActive(false);
+        UpdatePlayersList();
     }
 
     public void OpenViewAnalyticsMenu()
     {
         _newAnalyticsMenu.SetActive(false);
         _viewAnalyticsMenu.SetActive(true);
+        UpdateAnalyticPlayersList();
         UpdateAnalyticsList();
     }
 
@@ -69,34 +92,145 @@ public class AnalyticsManager : MonoBehaviour
     {
 
     }
+    public void AddCheatValues()
+    {
+        _StartTimeField.text = "0001-01-01T00:00:00";
+        _EndTimeField.text = "9999-12-31T23:59:59.9999999";
+    }
+
+    void PopulateDropdown(TMP_Dropdown dropdown, List<Guid> optionsList)
+    {
+        string currentVal = dropdown.options[dropdown.value].text;
+        Debug.Log("current " + currentVal);
+        List<string> options = new List<string>() { "None" };
+
+        int match = String.Equals("None", currentVal) ? 0 : -1;
+        for (int i = 0; i < optionsList.Count; i++)
+        {
+            string newString = optionsList[i].ToString();
+            options.Add(newString);
+
+            if (String.Equals(newString, currentVal))
+                match = i + 1;
+
+        }
+
+        dropdown.ClearOptions();
+        dropdown.AddOptions(options);
+        dropdown.value = match;
+        
+        if (match == -1)
+            dropdown.Show();
+    }
 
     public void RefreshAnalyticsList()
     {
+        UpdateAnalyticPlayersList();
         UpdateAnalyticsList();
     }
 
-    public void UpdateAnalyticsSort(int sorting)
+    private async void UpdateAnalyticPlayersList()
     {
-        if (Enum.IsDefined(typeof(PlayerSort), sorting))
+        string request = $"{Constants.apiAddress}api/analytics/allGuids";
+        if (_TypeDD.value != 0)
         {
-            playerSort = (PlayerSort)sorting;
-            UpdateAnalyticsList();
+            request += "?type=" + (_TypeDD.value - 1);
+        }
+        Debug.Log(request);
+        var response = await Client._instance._httpClient.GetAsync(request);
+        var responseString = await response.Content.ReadAsStringAsync();
+        Debug.Log(responseString);
+
+        try
+        {
+            analyticsPlayerList = JsonConvert.DeserializeObject<List<Guid>>(responseString);
+            PopulateDropdown(_playerIdDD, analyticsPlayerList);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
         }
     }
 
-    private async void UpdateAnalyticsList()
+    private async void UpdatePlayersList()
     {
-        string request = $"{Constants.apiAddress}api/analytics/"; //?sort={playerSort}";
+        string request = $"{Constants.apiAddress}api/players/allGuids";
 
         var response = await Client._instance._httpClient.GetAsync(request);
         var responseString = await response.Content.ReadAsStringAsync();
-
-        AnalyticsEventObject[] analyticsList = JsonConvert.DeserializeObject<AnalyticsEventObject[]>(responseString);
-
         Debug.Log(responseString);
 
-        Debug.Log(analyticsList[0].Message);
+        try
+        {
+            playerList = JsonConvert.DeserializeObject<List<Guid>>(responseString);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
 
-       _analyticsMenuCreator.RefreshList(analyticsList);
+
+    private async void UpdateAnalyticsList()
+    {
+        //(EventType? type, Guid? playerId, int? limit, bool? sortAscending, DateTime? startTime, DateTime? endTime)
+        string request = $"{Constants.apiAddress}api/analytics/"; //?sort={playerSort}";
+        int addCount = 0;
+        if(_TypeDD.value != 0)
+        {
+            request += (addCount == 0 ? "?" : "&") + "type=" + (_TypeDD.value - 1);
+            addCount++;
+        }
+
+        if (_playerIdDD.value != 0)
+        {
+            request += (addCount == 0 ? "?" : "&") + "playerId=" + (_playerIdDD.options[_playerIdDD.value].text);
+            addCount++;
+        }
+
+        if (_LimitCountField.text != "")
+        {
+            request += (addCount == 0 ? "?" : "&") + "limit=" + (Int32.Parse(_LimitCountField.text));
+            addCount++;
+        }
+
+        if (_SortByTimeDD.value == 1)
+        {
+            request += (addCount == 0 ? "?" : "&") + "sortAscending=true";
+            addCount++;
+        }
+        else if(_SortByTimeDD.value == 2)
+        {
+            request += (addCount == 0 ? "?" : "&") + "sortAscending=false";
+            addCount++;
+        }
+
+        if (_StartTimeField.text != "")
+        {
+            request += (addCount == 0 ? "?" : "&") + "startTime=" + (_StartTimeField.text);
+            addCount++;
+        }
+
+        if (_EndTimeField.text != "")
+        {
+            request += (addCount == 0 ? "?" : "&") + "endTime=" + (_EndTimeField.text);
+            addCount++;
+        }
+        Debug.Log(request);
+
+        var response = await Client._instance._httpClient.GetAsync(request);
+        var responseString = await response.Content.ReadAsStringAsync();
+        Debug.Log(responseString);
+
+        try
+        {
+            analyticsList = JsonConvert.DeserializeObject<AnalyticsEventObject[]>(responseString);
+            _analyticsMenuCreator.RefreshList(analyticsList);
+        }
+        catch (Exception e)
+        {
+            _analyticsMenuCreator.RefreshList(new AnalyticsEventObject[0]);
+            Debug.Log(e);
+        }
     }
 }
