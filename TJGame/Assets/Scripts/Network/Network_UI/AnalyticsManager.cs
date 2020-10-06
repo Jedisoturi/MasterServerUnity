@@ -33,9 +33,22 @@ public class AnalyticsManager : MonoBehaviour
     private TMP_Dropdown _SortByTimeDD;
     [SerializeField]
     private TMP_Dropdown _TypeDD;
+    [SerializeField]
+    private TMP_Dropdown _inputTypeDD;
+    [SerializeField]
+    private TMP_Dropdown _inputplayerIdDD;
+    [SerializeField]
+    private TMP_InputField _inputMessageField;
+    [SerializeField]
+    private Button _inputSendButton;
+    [SerializeField]
+    private TextMeshProUGUI _successText;
+
     private AnalyticsEventObject[] analyticsList;
     private List<Guid> playerList;
     private List<Guid> analyticsPlayerList;
+    
+
 
     private void Awake()
     {
@@ -52,6 +65,7 @@ public class AnalyticsManager : MonoBehaviour
 
     private void Start()
     {
+        UpdatePlayersList();
         UpdateAnalyticPlayersList();
         UpdateAnalyticsList();
         _TypeDD.onValueChanged.AddListener(delegate {
@@ -67,6 +81,7 @@ public class AnalyticsManager : MonoBehaviour
 
     public void OpenNewAnalyticsMenu()
     {
+        _successText.text = "";
         _newAnalyticsMenu.SetActive(true);
         _viewAnalyticsMenu.SetActive(false);
         UpdatePlayersList();
@@ -88,9 +103,44 @@ public class AnalyticsManager : MonoBehaviour
         _navigationMenu.SetActive(false);
     }
 
-    public void CreateAnalytics()
+    public async void CreateAnalytics()
     {
+        _inputSendButton.interactable = false;
 
+        if (await SendAnalytics())
+            _successText.text = "Successfully send analytics.";
+        else
+            _successText.text = "No Success sending analytics.";
+
+        _inputSendButton.interactable = true;
+    }
+
+    public async Task<bool> SendAnalytics()
+    {
+        string request = $"{Constants.apiAddress}api/analytics/new/{_inputTypeDD.value}";
+        object body = new
+        {
+            PlayerId = _inputplayerIdDD.options[_inputplayerIdDD.value].text,
+            Message = _inputMessageField.text
+        };
+
+        Debug.Log(request);
+
+        var response = await Player.PostAsync(request, body);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        Debug.Log(responseString);
+        AnalyticsEventObject analyticsEvent;
+        try
+        {
+            analyticsEvent = JsonConvert.DeserializeObject<AnalyticsEventObject>(responseString);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+
+        return analyticsEvent != null;
     }
     public void AddCheatValues()
     {
@@ -101,7 +151,7 @@ public class AnalyticsManager : MonoBehaviour
     void PopulateDropdown(TMP_Dropdown dropdown, List<Guid> optionsList)
     {
         string currentVal = dropdown.options[dropdown.value].text;
-        Debug.Log("current " + currentVal);
+        //Debug.Log("current " + currentVal);
         List<string> options = new List<string>() { "None" };
 
         int match = String.Equals("None", currentVal) ? 0 : -1;
@@ -163,6 +213,7 @@ public class AnalyticsManager : MonoBehaviour
         try
         {
             playerList = JsonConvert.DeserializeObject<List<Guid>>(responseString);
+            PopulateDropdown(_inputplayerIdDD, playerList);
         }
         catch (Exception e)
         {
