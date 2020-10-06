@@ -24,6 +24,8 @@ public class AnalyticsManager : MonoBehaviour
     [SerializeField]
     private TMP_Dropdown _playerIdDD;
     [SerializeField]
+    private TMP_InputField _MessageField;
+    [SerializeField]
     private TMP_InputField _LimitCountField;
     [SerializeField]
     private TMP_InputField _StartTimeField;
@@ -235,11 +237,17 @@ public class AnalyticsManager : MonoBehaviour
 
         if (_playerIdDD.value != 0)
         {
-            request += (addCount == 0 ? "?" : "&") + "playerId=" + (_playerIdDD.options[_playerIdDD.value].text);
+            request += (addCount == 0 ? "?" : "&") + "playerId=" + _playerIdDD.options[_playerIdDD.value].text;
             addCount++;
         }
 
-        if (_LimitCountField.text != "")
+        if (!string.IsNullOrEmpty(_MessageField.text))
+        {
+            request += (addCount == 0 ? "?" : "&") + "message=" + _MessageField.text;
+            addCount++;
+        }
+
+        if (!string.IsNullOrEmpty(_LimitCountField.text))
         {
             request += (addCount == 0 ? "?" : "&") + "limit=" + (Int32.Parse(_LimitCountField.text));
             addCount++;
@@ -256,18 +264,18 @@ public class AnalyticsManager : MonoBehaviour
             addCount++;
         }
 
-        if (_StartTimeField.text != "")
+        if (!string.IsNullOrEmpty(_StartTimeField.text))
         {
-            request += (addCount == 0 ? "?" : "&") + "startTime=" + (_StartTimeField.text);
+            request += (addCount == 0 ? "?" : "&") + "startTime=" + _StartTimeField.text;
             addCount++;
         }
 
-        if (_EndTimeField.text != "")
+        if (!string.IsNullOrEmpty(_EndTimeField.text))
         {
-            request += (addCount == 0 ? "?" : "&") + "endTime=" + (_EndTimeField.text);
+            request += (addCount == 0 ? "?" : "&") + "endTime=" + _EndTimeField.text;
             addCount++;
         }
-        Debug.Log(request);
+        Debug.Log("Searching: " + request);
 
         var response = await Client._instance._httpClient.GetAsync(request);
         var responseString = await response.Content.ReadAsStringAsync();
