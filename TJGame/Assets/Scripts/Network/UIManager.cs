@@ -11,16 +11,30 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager _instance;
 
-    public GameObject _newPlayerMenu;
-    public GameObject _connectingMenu;
-    public GameObject _connectMenu;
-    public GameObject _detailsMenu;
-    public PlayerMenuListCreator _detailsMenuPlayerCreator;
-    public ServerMenuObject _detailsMenuServer;
-    public InputField _usernameField;
+    [SerializeField]
+    private GameObject _newPlayerMenu;
+    [SerializeField]
+    private GameObject _awaitServersMenu;
+    [SerializeField]
+    private GameObject _connectMenu;
+    [SerializeField]
+    private GameObject _detailsMenu;
+    [SerializeField]
+    private GameObject _navigationMenu;
+    [SerializeField]
+    private GameObject _leaderMenu;
+    [SerializeField]
+    private PlayerMenuListCreator _leaderMenuPlayerCreator;
+    [SerializeField]
+    private PlayerInServerMenuListCreator _detailsMenuPlayerCreator;
+    [SerializeField]
+    private ServerMenuObject _detailsMenuServer;
+    [SerializeField]
+    private InputField _usernameField;
     private GameSaveData playerData;
     private bool userCreated = false;
-    private ServerObject[] serverList;
+    private PlayerSort playerSort = PlayerSort.ScoreDesc;
+
     [SerializeField]
     private ServerMenuListCreator serverMenuList;
 
@@ -68,17 +82,34 @@ public class UIManager : MonoBehaviour
         _newPlayerMenu.SetActive(true);
     }
 
-    public void OpenConnectingMenu()
+    public void OpenAwaitConnectingMenu()
     {
         _newPlayerMenu.SetActive(false);
-        _connectingMenu.SetActive(true);
+        _awaitServersMenu.SetActive(true);
     }
 
     public void OpenConnectMenu()
     {
-        UpdateServerList();
-        _connectingMenu.SetActive(false);
+        _awaitServersMenu.SetActive(false);
+        _navigationMenu.SetActive(true);
+        _leaderMenu.SetActive(false);
         _connectMenu.SetActive(true);
+        UpdateServerList();
+    }
+
+    public void OpenLeaderMenu()
+    {
+        _connectMenu.SetActive(false);
+        _detailsMenu.SetActive(false);
+        _leaderMenu.SetActive(true);
+        UpdatePlayerList();
+    }
+
+    public void CloseMenus()
+    {
+        _connectMenu.SetActive(false);
+        _navigationMenu.SetActive(false);
+        _detailsMenu.SetActive(false);
     }
 
     public void CreateUser()
@@ -89,7 +120,7 @@ public class UIManager : MonoBehaviour
         {
             userCreated = true;
             Player.CreatePlayer(_usernameField.text);
-            OpenConnectingMenu();
+            OpenAwaitConnectingMenu();
             StartCoroutine("WaitForPlayerDB");
         }
     }
@@ -119,6 +150,8 @@ public class UIManager : MonoBehaviour
     public void ConnectToServer(ServerObject server)
     {
         Debug.Log("Connecting to: " + server.EndPoint);
+        CloseMenus();
+        Client._instance.ConnectToServer(server);
         _connectMenu.SetActive(false);
         Client._instance.ConnectToServer(server);
     }
@@ -128,12 +161,40 @@ public class UIManager : MonoBehaviour
         UpdateServerList();
     }
 
+    public void RefreshPlayerList()
+    {
+        UpdatePlayerList();
+    }
+
+    public void UpdatePlayerSort(int sorting)
+    {
+        if (Enum.IsDefined(typeof(PlayerSort), sorting))
+        {
+            playerSort = (PlayerSort)sorting;
+            UpdatePlayerList();
+        }
+    }
+
+    private async void UpdatePlayerList()
+    {
+        string request = $"{Constants.apiAddress}api/players/?sort={playerSort}";
+
+        var response = await Client._instance._httpClient.GetAsync(request);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        PlayerObject[] playerList = JsonConvert.DeserializeObject<PlayerObject[]>(responseString);
+
+        Debug.Log(responseString);
+
+        _leaderMenuPlayerCreator.RefreshList(playerList);
+    }
+
     private async void UpdateServerList()
     {
         var response = await Client._instance._httpClient.GetAsync($"{Constants.apiAddress}api/servers/");
         var responseString = await response.Content.ReadAsStringAsync();
 
-        serverList = JsonConvert.DeserializeObject<ServerObject[]>(responseString);
+        ServerObject[] serverList = JsonConvert.DeserializeObject<ServerObject[]>(responseString);
 
         Debug.Log(responseString);
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMenuListCreator : MonoBehaviour
+public class PlayerInServerMenuListCreator : MonoBehaviour
 {
     [SerializeField]
     private GameObject emptyText;
@@ -26,7 +26,7 @@ public class PlayerMenuListCreator : MonoBehaviour
 
             //setParent
             spawnedMenuItem.transform.SetParent(content, false);
-            PlayerMenuObject playerMenuObject = spawnedMenuItem.GetComponent<PlayerMenuObject>();
+            PlayerInServerMenuObject playerMenuObject = spawnedMenuItem.GetComponent<PlayerInServerMenuObject>();
 
             if (playerMenuObject == null)
                 return;

@@ -12,7 +12,6 @@ public class ServerMenuListCreator : MonoBehaviour
 
     [SerializeField]
     private RectTransform content = null;
-    private int itemSize = 60;
 
     [SerializeField]
     private UIManager _UIManager = null;
