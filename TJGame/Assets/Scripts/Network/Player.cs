@@ -91,19 +91,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    public static string GenerateURL(string path, string body)
-    {
-        var url = path;
-        var stringToEncrypt = url + body;
-        var encrypted = Encode(stringToEncrypt, Constants.secret);
-        encrypted = HttpUtility.UrlEncode(encrypted);
-        Debug.Log(encrypted);
-        Debug.Log(HttpUtility.UrlDecode(encrypted));
-        url += (path.IndexOf("?") < 0 ? "?" : "&") + "signature=" + encrypted;
-
-        return url;
-    }
-
     public async static Task<HttpResponseMessage> PostAsync(string url, object body)
     {
         // Convert body to bytes
@@ -119,12 +106,6 @@ public class Player : MonoBehaviour
         byteContent.Headers.Add("TimeStamp", timeString);
 
         return await Client._instance._httpClient.PostAsync(url, byteContent);
-    }
-
-    public async static Task<HttpResponseMessage> DeleteAsync(string url)
-    {
-        url = GenerateURL(url, null);
-        return await Client._instance._httpClient.DeleteAsync(url);
     }
 
     #endregion

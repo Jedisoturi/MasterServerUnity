@@ -118,7 +118,7 @@ public class Server
 
     public async static void DBDeleteServer()
     {
-        await DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/delete?adminKey={_adminKey}", null);
     }
 
     public async static Task<PlayerObject> DBGetPlayer(Guid guid)
