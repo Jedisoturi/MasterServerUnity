@@ -112,12 +112,7 @@ public class Player : MonoBehaviour
         var byteContent = new ByteArrayContent(buffer);
         byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-        // Create signature
-        var timeString = DateTime.UtcNow.ToString("dd/MM/yyyy H:mm:ss");
-        var stringToEncrypt = url + timeString + content;
-        byteContent.Headers.Add("Signature", Encode(stringToEncrypt, Constants.secret));
-        byteContent.Headers.Add("TimeStamp", timeString);
-
+        url = GenerateURL(url, content);
         return await Client._instance._httpClient.PostAsync(url, byteContent);
     }
 

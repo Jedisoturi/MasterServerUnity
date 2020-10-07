@@ -17,6 +17,8 @@ using UnityEngine;
 
 public class Server
 {
+    
+    public static string ServerName { get; private set; }
     public static int MaxPlayers { get; private set; }
     public static int Port { get; private set; }
 
@@ -26,15 +28,16 @@ public class Server
 
     private static TcpListener _tcpListener;
     private static UdpClient _udpClient;
-    private static readonly HttpClient _httpClient = new HttpClient();
+    public static readonly HttpClient _httpClient = new HttpClient();
 
-    private static Guid _serverId;
+    public static Guid _serverId;
     private static Guid _adminKey;
 
     public static List<Guid> _bannedPlayers = new List<Guid>();
 
-    public static void Start(int maxPlayers, int port)
+    public static void Start(string name, int maxPlayers, int port)
     {
+        ServerName = name;
         MaxPlayers = maxPlayers;
         Port = port;
 
@@ -62,7 +65,7 @@ public class Server
 
         object data = new
         {
-            Name = "Foo",
+            Name = ServerName,
             EndPoint = $"{ip}:{Port}",
             Players = new List<Guid>(),
             MaxPlayers = MaxPlayers,
@@ -79,6 +82,18 @@ public class Server
         var serverAndKey = JsonConvert.DeserializeObject<ServerAndKeyObject>(responseString);
         _adminKey = serverAndKey.AdminKey;
         _serverId = serverAndKey.Server.Id;
+    }
+
+    public async static void DBNameChanged(string newName)
+    {
+        Debug.Log(newName);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/modifyName/{newName}?adminKey={_adminKey}", null);
+    }
+
+    public async static void DBMaxPlayersChanged(int newMax)
+    {
+        Debug.Log(newMax);
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/modifyMaxPlayers/{newMax}?adminKey={_adminKey}", null);
     }
 
     public async static void DBPlayerConnected(int id)
@@ -103,7 +118,7 @@ public class Server
 
     public async static void DBDeleteServer()
     {
-        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}", null);
+        await DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
     }
 
     public async static Task<PlayerObject> DBGetPlayer(Guid guid)
@@ -262,23 +277,6 @@ public class Server
         }
     }
 
-    public async static Task<HttpResponseMessage> PostAsync(string url, object body)
-    {
-        // Convert body to bytes
-        var content = JsonConvert.SerializeObject(body);
-        var buffer = Encoding.UTF8.GetBytes(content);
-        var byteContent = new ByteArrayContent(buffer);
-        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        // Create signature
-        var timeString = DateTime.UtcNow.ToString("dd/MM/yyyy H:mm:ss");
-        var stringToEncrypt = url + timeString + content;
-        byteContent.Headers.Add("Signature", Encode(stringToEncrypt, Constants.secret));
-        byteContent.Headers.Add("TimeStamp", timeString);
-
-        return await _httpClient.PostAsync(url, byteContent);
-    }
-
     public static string GenerateURL(string path, string body)
     {
         var url = path;
@@ -290,6 +288,18 @@ public class Server
         url += (path.IndexOf("?") < 0 ? "?" : "&") + "signature=" + encrypted;
 
         return url;
+    }
+
+    public async static Task<HttpResponseMessage> PostAsync(string url, object body)
+    {
+        // Convert body to bytes
+        var content = JsonConvert.SerializeObject(body);
+        var buffer = Encoding.UTF8.GetBytes(content);
+        var byteContent = new ByteArrayContent(buffer);
+        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        url = GenerateURL(url, content);
+        return await _httpClient.PostAsync(url, byteContent);
     }
 
     public async static Task<HttpResponseMessage> DeleteAsync(string url)
