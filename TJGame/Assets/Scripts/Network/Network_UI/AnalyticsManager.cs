@@ -119,7 +119,7 @@ public class AnalyticsManager : MonoBehaviour
 
     public async Task<bool> SendAnalytics()
     {
-        string request = $"{Constants.apiAddress}api/analytics/new/{_inputTypeDD.value}";
+        string request = $"{Constants.apiAddress}api/analytics/new/{(_inputTypeDD.value - 1)}";
         object body = new
         {
             PlayerId = _inputplayerIdDD.options[_inputplayerIdDD.value].text,
