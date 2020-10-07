@@ -103,7 +103,7 @@ public class Server
 
     public async static void DBDeleteServer()
     {
-        await DeleteAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}");
+        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}?adminKey={_adminKey}", null);
     }
 
     public async static Task<PlayerObject> DBGetPlayer(Guid guid)
@@ -262,6 +262,23 @@ public class Server
         }
     }
 
+    public async static Task<HttpResponseMessage> PostAsync(string url, object body)
+    {
+        // Convert body to bytes
+        var content = JsonConvert.SerializeObject(body);
+        var buffer = Encoding.UTF8.GetBytes(content);
+        var byteContent = new ByteArrayContent(buffer);
+        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        // Create signature
+        var timeString = DateTime.UtcNow.ToString("dd/MM/yyyy H:mm:ss");
+        var stringToEncrypt = url + timeString + content;
+        byteContent.Headers.Add("Signature", Encode(stringToEncrypt, Constants.secret));
+        byteContent.Headers.Add("TimeStamp", timeString);
+
+        return await _httpClient.PostAsync(url, byteContent);
+    }
+
     public static string GenerateURL(string path, string body)
     {
         var url = path;
@@ -273,18 +290,6 @@ public class Server
         url += (path.IndexOf("?") < 0 ? "?" : "&") + "signature=" + encrypted;
 
         return url;
-    }
-
-    public async static Task<HttpResponseMessage> PostAsync(string url, object body)
-    {
-        // Convert body to bytes
-        var content = JsonConvert.SerializeObject(body);
-        var buffer = Encoding.UTF8.GetBytes(content);
-        var byteContent = new ByteArrayContent(buffer);
-        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        url = GenerateURL(url, content);
-        return await _httpClient.PostAsync(url, byteContent);
     }
 
     public async static Task<HttpResponseMessage> DeleteAsync(string url)
