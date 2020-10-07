@@ -17,8 +17,6 @@ using UnityEngine;
 
 public class Server
 {
-    
-    public static string ServerName { get; private set; }
     public static int MaxPlayers { get; private set; }
     public static int Port { get; private set; }
 
@@ -28,16 +26,15 @@ public class Server
 
     private static TcpListener _tcpListener;
     private static UdpClient _udpClient;
-    public static readonly HttpClient _httpClient = new HttpClient();
+    private static readonly HttpClient _httpClient = new HttpClient();
 
-    public static Guid _serverId;
+    private static Guid _serverId;
     private static Guid _adminKey;
 
     public static List<Guid> _bannedPlayers = new List<Guid>();
 
-    public static void Start(string name, int maxPlayers, int port)
+    public static void Start(int maxPlayers, int port)
     {
-        ServerName = name;
         MaxPlayers = maxPlayers;
         Port = port;
 
@@ -65,7 +62,7 @@ public class Server
 
         object data = new
         {
-            Name = ServerName,
+            Name = "Foo",
             EndPoint = $"{ip}:{Port}",
             Players = new List<Guid>(),
             MaxPlayers = MaxPlayers,
@@ -82,18 +79,6 @@ public class Server
         var serverAndKey = JsonConvert.DeserializeObject<ServerAndKeyObject>(responseString);
         _adminKey = serverAndKey.AdminKey;
         _serverId = serverAndKey.Server.Id;
-    }
-
-    public async static void DBNameChanged(string newName)
-    {
-        Debug.Log(newName);
-        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/modifyName/{newName}?adminKey={_adminKey}", null);
-    }
-
-    public async static void DBMaxPlayersChanged(int newMax)
-    {
-        Debug.Log(newMax);
-        await PostAsync($"{Constants.apiAddress}api/servers/{_serverId}/modifyMaxPlayers/{newMax}?adminKey={_adminKey}", null);
     }
 
     public async static void DBPlayerConnected(int id)

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ServerObject : BaseObject
+public class ServerObject
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
